@@ -5,9 +5,9 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.signals import post_save, post_delete, class_prepared
 
-from whoosh import store
+from whoosh.filedb import filestore
 from whoosh.fields import Schema, STORED, ID, KEYWORD, TEXT
-from whoosh.index import Index, IndexError, EmptyIndexError
+from whoosh.index import FileIndex, IndexError, EmptyIndexError
 from whoosh.qparser import QueryParser
 
 try:
@@ -39,7 +39,6 @@ field_mapping = {
     models.TextField: TEXT,
     models.TimeField: ID,
     models.URLField: ID,
-    models.XMLField: TEXT,
 }
 
 class WhooshManager(models.Manager):
@@ -50,9 +49,9 @@ class WhooshManager(models.Manager):
         self.real_time = kwargs.pop('real_time', True)
         if not os.path.lexists(STORAGE_DIR):
             os.makedirs(STORAGE_DIR)
-        self.storage = store.FileStorage(STORAGE_DIR)
+        self.storage = filestore.FileStorage(STORAGE_DIR)
         try:
-            self.index = Index(self.storage)
+            self.index = FileIndex(self.storage)
         except (IndexError, EmptyIndexError):
             self.index = None
         super(WhooshManager, self).__init__(*args, **kwargs)
@@ -68,7 +67,7 @@ class WhooshManager(models.Manager):
             schema_dict[field.name] = field_mapping[field.__class__]
         self.schema = Schema(**schema_dict)
         if self.index is None:
-            self.index = Index(self.storage, schema=self.schema, create=True)
+            self.index = FileIndex.create(self.storage, self.schema)
         self.searcher = self.index.searcher()
         if self.real_time:
             post_save.connect(self.post_save_callback, sender=self.model)
