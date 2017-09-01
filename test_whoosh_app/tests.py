@@ -1,6 +1,6 @@
 from django.test import TestCase
-
 from test_whoosh_app.models import Post
+
 
 class SimpleTest(TestCase):
     def setUp(self):
@@ -19,10 +19,9 @@ class SimpleTest(TestCase):
     
     def test_query(self):
         self.assertEqual(
-            unicode(Post.objects.query('first')),
-            unicode(Post.objects.filter(title='first post'))
+            Post.objects.query('title', 'first'),
+            Post.objects.filter(title='first post')
         )
         self.assertEqual(
-            map(unicode, Post.objects.query('post')),
-            map(unicode, Post.objects.all())
+            Post.objects.query('title', 'post'), Post.objects.all()
         )

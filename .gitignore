@@ -48,3 +48,13 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Distribution / packaging
+.idea
+
+# Whoosh
+LTNews/whoosh_index/
+
+# cmd
+cmd
+
